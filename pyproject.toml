@@ -1,0 +1,38 @@
+[project]
+name = "ml-algorithms-from-scratch"
+version = "0.1.0"
+description = "Classic ML algorithms implemented from scratch in NumPy (PCA, KNN, logistic regression, SVM, decision trees, random forests, gradient boosting, MLP, LSTM, autoencoder), each benchmarked against its scikit-learn / PyTorch counterpart."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Tejas Pandya", email = "tbp8777@nyu.edu" }]
+license = { text = "MIT" }
+keywords = ["machine-learning", "from-scratch", "numpy", "scikit-learn", "education"]
+
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pandas>=2.1",
+    "scikit-learn>=1.4",   # baselines to benchmark the from-scratch models against
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+neural = ["torch>=2.2"]    # only needed for the LSTM/autoencoder modules + neural benchmarks
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mlscratch"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "N803", "N806"]  # ML code uses capital X / single-letter math names
