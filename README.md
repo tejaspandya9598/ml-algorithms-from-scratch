@@ -39,6 +39,39 @@ whole point.
 | `neural.lstm` | LSTM cell + sequence model | `torch.nn.LSTM` |
 | `neural.autoencoder` | autoencoder on financial data | — |
 
+## The math being implemented
+
+One line each — the code is the long version:
+
+- **Logistic regression** — maximum likelihood via gradient descent on cross-entropy;
+  the gradient is the elegant $\nabla_w = X^\top(\sigma(Xw) - y)$.
+- **Linear SVM** — hinge-loss subgradient descent, plus the dual QP
+  $\max_\alpha \sum \alpha_i - \tfrac12 \sum \alpha_i \alpha_j y_i y_j x_i^\top x_j$
+  s.t. $0 \le \alpha_i \le C$ (solved with SciPy) to recover support vectors (Cortes & Vapnik, 1995).
+- **Trees** — greedy recursive splits minimising Gini impurity
+  $1 - \sum_k p_k^2$ (classification) or within-node variance (regression).
+- **Random forest** — bagging (bootstrap + feature subsampling) to decorrelate trees;
+  variance falls roughly as $\rho\sigma^2 + \frac{1-\rho}{B}\sigma^2$ (Breiman, 2001).
+- **Gradient boosting** — functional gradient descent: each tree fits the negative
+  gradient of the loss at the current prediction, $F_m = F_{m-1} + \nu \, h_m$ (Friedman, 2001).
+- **PCA** — eigendecomposition of the covariance matrix; components are the
+  directions maximising retained variance $w^\top \Sigma w$ subject to orthonormality.
+- **MLP** — backprop is the chain rule organised layer-by-layer:
+  $\delta^{(l)} = (W^{(l+1)\top} \delta^{(l+1)}) \odot \phi'(z^{(l)})$.
+- **LSTM** — forget/input/output gates
+  $f_t, i_t, o_t = \sigma(\cdot)$, cell state $c_t = f_t \odot c_{t-1} + i_t \odot \tanh(\cdot)$ —
+  the additive cell path is what keeps gradients alive (Hochreiter & Schmidhuber, 1997).
+- **ADF test** — regress $\Delta y_t$ on $y_{t-1}$ + lags; the t-stat on $y_{t-1}$
+  against Dickey-Fuller critical values decides the unit root.
+
+## References
+
+- Hastie, Tibshirani & Friedman, *The Elements of Statistical Learning* (2nd ed.) — the umbrella reference.
+- Friedman, J. (2001), *Greedy Function Approximation: A Gradient Boosting Machine*, Annals of Statistics 29(5).
+- Breiman, L. (2001), *Random Forests*, Machine Learning 45(1).
+- Cortes, C. & Vapnik, V. (1995), *Support-Vector Networks*, Machine Learning 20(3).
+- Hochreiter, S. & Schmidhuber, J. (1997), *Long Short-Term Memory*, Neural Computation 9(8).
+
 ## Structure
 
 ```
