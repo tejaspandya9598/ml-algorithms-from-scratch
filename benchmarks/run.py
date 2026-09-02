@@ -57,7 +57,7 @@ def classification() -> pd.DataFrame:
         "Logistic Regression": (LogisticRegressionScratch(lr=0.1, n_epochs=500), SkLogReg(max_iter=2000)),
         "SVM (linear)": (SVMClassifier(C=1.0, kernel="linear"), SVC(kernel="linear")),
         "Decision Tree": (DecisionTreeClassifier(max_depth=6), SkDT(max_depth=6, random_state=0)),
-        "Random Forest": (RandomForestClassifier(n_estimators=15, max_depth=8), SkRF(n_estimators=15, max_depth=8, random_state=0)),
+        "Random Forest": (RandomForestClassifier(n_estimators=15, max_depth=8, random_state=0), SkRF(n_estimators=15, max_depth=8, random_state=0)),
     }
     for name, (scratch, sk) in pairs.items():
         # SVM here trains on +/-1 labels; map and back.
@@ -86,7 +86,7 @@ def regression() -> pd.DataFrame:
     pairs = {
         "Regression Tree": (RegressionTree(max_depth=4), None),
         "KNN Regressor": (KNNRegressor(k=10), SkKNN(n_neighbors=10)),
-        "Bagging KNN": (BaggingKNNRegressor(n_estimators=15, k=10), SkGBR(random_state=0)),
+        "Bagging KNN": (BaggingKNNRegressor(random_state=0, n_estimators=15, k=10), SkGBR(random_state=0)),
     }
     sk_tree = __import__("sklearn.tree", fromlist=["DecisionTreeRegressor"]).DecisionTreeRegressor
     pairs["Regression Tree"] = (RegressionTree(max_depth=4), sk_tree(max_depth=4, random_state=0))

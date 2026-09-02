@@ -11,16 +11,34 @@ they're correct. Grew out of four graduate ML assignments, merged into one libra
 Anyone can call `model.fit()`. These are written from the math up — the splitting
 criteria, the gradient updates, the backprop — and then checked against
 `scikit-learn` / `PyTorch` on real datasets. On the breast-cancer set the
-hand-written models reproduce the library's **test accuracy to the digit**:
+hand-written models match the library's test accuracy **to four decimals on three of
+the four**, and the fourth is the interesting one. Regenerated 2026-09-02 with
+`uv run python benchmarks/run.py`:
 
-| Model | From scratch | scikit-learn |
-|---|--:|--:|
-| Logistic Regression | 0.986 | 0.986 |
-| SVM (linear) | 0.986 | 0.986 |
-| Decision Tree | 0.937 | 0.937 |
-| Random Forest | 0.958 | 0.958 |
+| Model | From scratch | scikit-learn | dataset / metric |
+|---|--:|--:|---|
+| Logistic Regression | 0.9860 | 0.9860 | breast-cancer, accuracy |
+| SVM (linear) | 0.9860 | 0.9860 | breast-cancer, accuracy |
+| Decision Tree | 0.9371 | 0.9371 | breast-cancer, accuracy |
+| Random Forest | **0.9371** | **0.9580** | breast-cancer, accuracy |
+| Regression Tree | 58.02 | 58.74 | diabetes, RMSE |
+| KNN Regressor | 55.15 | 55.15 | diabetes, RMSE |
+| Bagging KNN | 54.37 | 56.65 | diabetes, RMSE |
 
-(Regression on the diabetes set lands within ~1 RMSE of the library trees/KNN.)
+**The random forest does not match, and this row used to claim it did** — 0.958
+against 0.958, which was scikit-learn's number written into both columns. Two points
+of accuracy is a real gap and it is the honest read on a 15-tree forest: the
+hand-written version bootstraps and subsets features the same way, but sklearn's
+tree splitter searches candidate thresholds differently, and on 30 correlated
+features that shows up in the vote. The single decision tree matches exactly, which
+localises the difference to the ensembling rather than to the splitter.
+
+Until this pass the forest also scored a *different* number every run — 0.937 here,
+0.951 there — because every bootstrap draw and feature subset came from the global
+`np.random` while the sklearn model it is measured against takes a `random_state`.
+A seeded library against an unseeded reimplementation is not a comparison, and the
+figure that reached the README was whichever draw got written down. Everything that
+draws now takes a seed.
 They're slower — pure NumPy vs. compiled C — but the *answers* match, which is the
 whole point.
 

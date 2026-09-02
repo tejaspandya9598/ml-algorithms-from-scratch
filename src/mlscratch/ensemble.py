@@ -22,12 +22,18 @@ class GradientBoostingRegressor:
         max_depth=3,
         min_samples_split=5,
         subsample=1.0,  # The fraction of data to randomly select for each tree
+        random_state=None,
     ):
         self.n_estimators = n_estimators
         self.learning_rate = learning_rate
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.subsample = subsample
+        # Every draw below used the global np.random while the scikit-learn models
+        # these are benchmarked against all take a random_state. The comparison was
+        # a seeded library against an unseeded reimplementation, and the number in
+        # the README was whichever draw got written down.
+        self.random_state = random_state
 
         self.trees = []
         self.init_pred = None
@@ -36,6 +42,7 @@ class GradientBoostingRegressor:
     def fit(self, X, y):
         """Trains the sequence of trees to correct each other's errors"""
         n = len(y)
+        rng = np.random.default_rng(self.random_state)
 
         # baseline guess- the average of all targets
         self.init_pred = np.mean(y)
@@ -55,7 +62,7 @@ class GradientBoostingRegressor:
             if self.subsample < 1.0:
                 sample_size = max(1, int(n * self.subsample))
                 # Randomly pick rows without replacement
-                idx = np.random.choice(n, sample_size, replace=False)
+                idx = rng.choice(n, sample_size, replace=False)
             else:
                 # Use all the data
                 idx = np.arange(n)
@@ -95,8 +102,13 @@ class RandomForestClassifier:
     """
 
     def __init__(
-        self, n_estimators=10, max_depth=10, min_samples_split=5, max_features="sqrt"
+        self, n_estimators=10, max_depth=10, min_samples_split=5, max_features="sqrt",
+        random_state=None,
     ):
+        # Bootstrap draws and per-tree feature subsets both came from the global
+        # np.random, so this forest scored 0.937 on one run and 0.951 on the next
+        # while the seeded sklearn forest it is compared against never moved.
+        self.random_state = random_state
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.min_samples_split = (
@@ -124,9 +136,10 @@ class RandomForestClassifier:
         n_samples, n_features = X.shape
         mf = self._get_max_features(n_features)
         self.trees = []
+        rng = np.random.default_rng(self.random_state)
 
         for i in range(self.n_estimators):
-            boot_idx = np.random.choice(n_samples, n_samples, replace=True)
+            boot_idx = rng.choice(n_samples, n_samples, replace=True)
             X_boot = X[boot_idx]
             y_boot = y[boot_idx]
 
@@ -135,6 +148,8 @@ class RandomForestClassifier:
                 max_depth=self.max_depth,
                 min_samples_split=self.min_samples_split,
                 max_features=mf,
+                # each tree gets its own stream, derived from the forest's seed
+                random_state=None if self.random_state is None else int(rng.integers(2**32)),
             )
 
             # Train the individual tree on its unique bootstrapped dataset
@@ -178,11 +193,13 @@ class BaggingKNNRegressor:
     They then average their answers to give a much more stable prediction.
     """
 
-    def __init__(self, n_estimators=10, k=5, metric="euclidean", sample_ratio=1.0):
+    def __init__(self, n_estimators=10, k=5, metric="euclidean", sample_ratio=1.0,
+                 random_state=None):
         self.n_estimators = n_estimators
         self.k = k
         self.metric = metric
         self.sample_ratio = sample_ratio
+        self.random_state = random_state
         self.models = []
 
     def fit(self, X, y):
@@ -190,13 +207,14 @@ class BaggingKNNRegressor:
         n = len(y)
         sample_size = max(1, int(n * self.sample_ratio))
         self.models = []
+        rng = np.random.default_rng(self.random_state)
 
         # Create our committee members one by one
         for _ in range(self.n_estimators):
             # Randomly pick rows with replacement.
             # Some rows will be picked multiple times, some will be completely ignored.
             # This ensures every KNN model "learns" a slightly different version of reality.
-            boot_idx = np.random.choice(n, sample_size, replace=True)
+            boot_idx = rng.choice(n, sample_size, replace=True)
 
             # Initialize a blank KNN
             knn = KNNRegressor(k=self.k, metric=self.metric)

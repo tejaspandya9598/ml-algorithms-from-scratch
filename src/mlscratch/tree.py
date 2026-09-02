@@ -364,12 +364,17 @@ class RegressionTree:
 class ClassificationTree:
     """A decision tree that categorizes data by minimizing Gini impurity."""
 
-    def __init__(self, max_depth=10, min_samples_split=5, max_features=None):
+    def __init__(self, max_depth=10, min_samples_split=5, max_features=None,
+                 random_state=None):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
 
         # force the tree to only pick from a random subset of columns.
         self.max_features = max_features
+        # Drawn from the global np.random, this tree gave a different answer every
+        # run while the scikit-learn tree it is benchmarked against takes a seed.
+        self.random_state = random_state
+        self._rng = np.random.default_rng(random_state)
         self.tree = None
 
     def _gini(self, y):
@@ -399,7 +404,7 @@ class ClassificationTree:
         # If max_features is set, randomly pick a handful of columns to evaluate.
         # Otherwise, check all of them.
         if self.max_features and self.max_features < n_features:
-            feat_indices = np.random.choice(
+            feat_indices = self._rng.choice(
                 n_features, self.max_features, replace=False
             )
         else:

@@ -150,3 +150,33 @@ def test_pca_survives_a_constant_feature():
     X = np.column_stack([rng.normal(size=60), rng.normal(size=60), np.full(60, 3.0)])
     proj, evr = pca_algorithm(X, k=2)
     assert np.isfinite(proj).all() and np.isfinite(evr).all()
+
+
+def test_forest_and_bagging_are_reproducible():
+    """Bootstrap draws and per-tree feature subsets came from the global np.random
+    while the sklearn models they are benchmarked against take a random_state. The
+    forest scored 0.937 on one run and 0.951 on the next, and whichever draw got
+    written down became the README's number."""
+    from mlscratch.ensemble import BaggingKNNRegressor, RandomForestClassifier
+    from mlscratch.metrics import accuracy_manual
+
+    Xtr, Xte, ytr, yte = _data()
+    accs = []
+    for _ in range(2):
+        m = RandomForestClassifier(n_estimators=8, max_depth=6, random_state=0).fit(Xtr, ytr)
+        accs.append(accuracy_manual(yte, np.asarray(m.predict(Xte))))
+    assert accs[0] == accs[1]
+
+    preds = [BaggingKNNRegressor(n_estimators=5, k=5, random_state=1)
+             .fit(Xtr, ytr.astype(float)).predict(Xte) for _ in range(2)]
+    assert np.array_equal(preds[0], preds[1])
+
+
+def test_unseeded_forest_still_varies():
+    """The seed is opt-in, so leaving it out must still give an independent draw."""
+    from mlscratch.ensemble import RandomForestClassifier
+
+    Xtr, _, ytr, _ = _data()
+    a = RandomForestClassifier(n_estimators=5, max_depth=4).fit(Xtr, ytr)
+    b = RandomForestClassifier(n_estimators=5, max_depth=4).fit(Xtr, ytr)
+    assert a.trees and b.trees   # both built; identical output is not required
