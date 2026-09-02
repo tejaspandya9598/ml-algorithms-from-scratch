@@ -14,6 +14,7 @@ dependencies = [
     "pandas>=2.1",
     "scikit-learn>=1.4",   # baselines to benchmark the from-scratch models against
     "matplotlib>=3.8",
+    "statsmodels>=0.14",   # Dickey-Fuller critical values for adf_test
 ]
 
 [project.optional-dependencies]

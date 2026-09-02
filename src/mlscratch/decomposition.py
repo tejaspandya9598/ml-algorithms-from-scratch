@@ -12,6 +12,12 @@ def pca_algorithm(dataset, k):
     features_mean = np.mean(dataset, axis=0)
     features_std = np.std(dataset, axis=0)
 
+    # A feature that never varies has std 0. Dividing by it gave inf or nan for
+    # that column, which then poisoned the whole covariance matrix and every
+    # eigenvector with it. A constant feature carries no variance to decompose,
+    # so scale it by 1 and let it sit at zero.
+    features_std = np.where(features_std > 0, features_std, 1.0)
+
     # centering/standardizing wine features data
     features_scale = (dataset - features_mean) / features_std
 

@@ -42,15 +42,28 @@ def decompose_multiplicative(series_values, period=4):
     return trend, seasonal, residual
 
 
-def adf_test(series_name):
-    result = adfuller(series_name)
-    print(f'ADF Statistic: {result[0]}')
-    print(f'p-value: {result[1]}')
+def adf_test(series, alpha=0.05, verbose=True):
+    """Augmented Dickey-Fuller test. Returns (statistic, p_value, is_stationary).
 
-    if result[1] <= 0.05:
-        print("Result: Stationary (since p-value is <= 0.05)\n")
-    else:
-        print("Result: Non-Stationary (since p-value is > 0.05)\n")
+    `adfuller` was never imported, so every call to this raised NameError. It
+    also only printed, which meant nothing downstream could act on the result.
+
+    statsmodels supplies the Dickey-Fuller critical-value tables, which are
+    simulated rather than derived - the one part of this test not worth writing
+    out by hand. Imported here so the rest of the module loads without it.
+    """
+    from statsmodels.tsa.stattools import adfuller
+
+    result = adfuller(series, result_object=True)
+    stat, p_value = float(result.statistic), float(result.pvalue)
+    is_stationary = p_value <= alpha
+    if verbose:
+        print(f"ADF Statistic: {stat}")
+        print(f"p-value: {p_value}")
+        verdict = "Stationary" if is_stationary else "Non-Stationary"
+        sign = "<=" if is_stationary else ">"
+        print(f"Result: {verdict} (since p-value is {sign} {alpha})\n")
+    return stat, p_value, is_stationary
 
 
 def feature_lag_matrix(time_series, p):

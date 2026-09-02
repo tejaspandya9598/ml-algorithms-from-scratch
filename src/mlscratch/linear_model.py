@@ -14,8 +14,12 @@ class LogisticRegressionScratch:
     """
 
     def __init__(self, lr=0.01, n_epochs=1000, batch_size=32,
-                 lambda_reg=0.01, patience=10, tol=1e-5):
+                 lambda_reg=0.01, patience=10, tol=1e-5, random_state=None):
         self.lr = lr
+        # The batch shuffle used the global numpy RNG, so two runs of the same
+        # model gave different weights. In a repo whose whole claim is matching
+        # scikit-learn to three decimals, that has to be pinnable.
+        self.random_state = random_state
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.lambda_reg = lambda_reg
@@ -40,15 +44,18 @@ class LogisticRegressionScratch:
 
         """binary cross-entropy + L2 penalty"""
 
-        m = len(y)
         h = self._sigmoid(X @ self.weights + self.bias)
 
         # clip predictions so log doesn't blow up
         h = np.clip(h, 1e-12, 1 - 1e-12)
         bce = -np.mean(y * np.log(h) + (1 - y) * np.log(1 - h))
 
-        # regularization term to penalize large weights
-        l2  = (self.lambda_reg / (2 * m)) * np.sum(self.weights ** 2)
+        # Regularisation term. This used to divide by len(y) - the size of
+        # whatever set it was handed - while the gradient divided by the
+        # mini-batch size, so the curve being plotted was not the objective
+        # being minimised, and the training and validation losses were scaled by
+        # different amounts. Both sides now use the same penalty.
+        l2 = (self.lambda_reg / 2.0) * np.sum(self.weights ** 2)
 
         return bce + l2
 
@@ -58,11 +65,12 @@ class LogisticRegressionScratch:
         self.bias = 0.0
         best_val_loss = np.inf
         patience_ctr  = 0
+        rng = np.random.default_rng(self.random_state)
 
         for epoch in range(self.n_epochs):
 
             # reshuffle every epoch so batches aren't the same
-            idx = np.random.permutation(n_samples)
+            idx = rng.permutation(n_samples)
             X_shuf, y_shuf = X_train[idx], y_train[idx]
 
             # mini-batch gradient descent
@@ -77,7 +85,7 @@ class LogisticRegressionScratch:
                 error = h - yb
 
                 # L2 only on weights, not on bias
-                dw = (1 / mb) * (Xb.T @ error) + (self.lambda_reg / mb) * self.weights
+                dw = (1 / mb) * (Xb.T @ error) + self.lambda_reg * self.weights
                 db = np.mean(error)
 
                 # update step

@@ -6,17 +6,23 @@ from __future__ import annotations
 import numpy as np
 
 
-def simple_knn_predict(X_train_proj, y_train, X_test_proj):
+def simple_knn_predict(X_train_proj, y_train, X_test_proj, k=1):
+    """Majority vote over the k nearest training points.
+
+    This used np.argmin and took the single closest neighbour, so it was 1-NN
+    under a k-NN name with no way to ask for anything else - and 1-NN is the
+    highest-variance member of the family, which is the wrong default to hide.
+    """
+    y_train = np.asarray(y_train)
     y_pred = []
     for test_point in X_test_proj:
         # Calculating Euclidean distance from this test point to all training points
         distances = np.sqrt(np.sum((X_train_proj - test_point) ** 2, axis=1))
 
-        # Finding the index of the closest training point
-        nearest_idx = np.argmin(distances)
-
-        # Assigning the label of the nearest neighbor
-        y_pred.append(y_train[nearest_idx])
+        # Taking the k closest, then the most common label among them
+        nearest = np.argsort(distances, kind="mergesort")[:k]
+        labels, counts = np.unique(y_train[nearest], return_counts=True)
+        y_pred.append(labels[np.argmax(counts)])
     return np.array(y_pred)
 
 
