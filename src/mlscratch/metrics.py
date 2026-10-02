@@ -62,10 +62,10 @@ def precision_recall_f1_manual(y_true, y_pred, pos_label=1):
     # count true positives: we said positive and it actually was
     tp = sum(1 for t, p in zip(y_true, y_pred) if t == pos_label and p == pos_label)
 
-    # count false positives: we said positive but it was actually negative
+    # count false positives: we said positive, but it was actually negative
     fp = sum(1 for t, p in zip(y_true, y_pred) if t != pos_label and p == pos_label)
 
-    # count false negatives: it was positive but we missed it
+    # count false negatives: it was positive, but we missed it
     fn = sum(1 for t, p in zip(y_true, y_pred) if t == pos_label and p != pos_label)
 
     # guard against division by zero-

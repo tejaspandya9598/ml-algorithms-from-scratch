@@ -44,7 +44,7 @@ class GradientBoostingRegressor:
         n = len(y)
         rng = np.random.default_rng(self.random_state)
 
-        # baseline guess- the average of all targets
+        # baseline guess: the average of all targets
         self.init_pred = np.mean(y)
 
         current_pred = np.full(n, self.init_pred)

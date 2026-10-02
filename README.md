@@ -27,7 +27,7 @@ the four**, and the fourth is the interesting one. Regenerated 2026-09-02 with
 
 **The random forest does not match, and this row used to claim it did** — 0.958
 against 0.958, which was scikit-learn's number written into both columns. Two points
-of accuracy is a real gap and it is the honest read on a 15-tree forest: the
+of accuracy is a real gap, and it is the honest read on a 15-tree forest: the
 hand-written version bootstraps and subsets features the same way, but sklearn's
 tree splitter searches candidate thresholds differently, and on 30 correlated
 features that shows up in the vote. The single decision tree matches exactly, which

@@ -21,7 +21,7 @@ class LinearSVMSubgradient:
 
     The hinge is not differentiable at its kink, so this is a sub-gradient
     method, not gradient descent: at the kink any value in the subdifferential
-    is a valid direction and we take the one from the active side. The step size
+    is a valid direction, and we take the one from the active side. The step size
     decays as lr / (1 + t/n_iters) because a constant step on a non-smooth
     objective circles the optimum rather than settling into it.
 
@@ -108,7 +108,7 @@ class SVMClassifier:
             if x1.ndim == 1: x1 = x1.reshape(1, -1)
             if x2.ndim == 1: x2 = x2.reshape(1, -1)
 
-            # squared euclidean distance between all pairs
+            # squared Euclidean distance between all pairs
             sq_dist = (np.sum(x1**2, axis=1, keepdims=True)
                        + np.sum(x2**2, axis=1, keepdims=True).T
                        - 2 * x1 @ x2.T)
