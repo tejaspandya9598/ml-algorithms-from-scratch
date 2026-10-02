@@ -25,20 +25,13 @@ the four**, and the fourth is the interesting one. Regenerated 2026-09-02 with
 | KNN Regressor | 55.15 | 55.15 | diabetes, RMSE |
 | Bagging KNN | 54.37 | 56.65 | diabetes, RMSE |
 
-**The random forest does not match, and this row used to claim it did** — 0.958
-against 0.958, which was scikit-learn's number written into both columns. Two points
-of accuracy is a real gap, and it is the honest read on a 15-tree forest: the
-hand-written version bootstraps and subsets features the same way, but sklearn's
-tree splitter searches candidate thresholds differently, and on 30 correlated
-features that shows up in the vote. The single decision tree matches exactly, which
-localises the difference to the ensembling rather than to the splitter.
-
-Until this pass the forest also scored a *different* number every run — 0.937 here,
-0.951 there — because every bootstrap draw and feature subset came from the global
-`np.random` while the sklearn model it is measured against takes a `random_state`.
-A seeded library against an unseeded reimplementation is not a comparison, and the
-figure that reached the README was whichever draw got written down. Everything that
-draws now takes a seed, and a re-run on 2026-10-02 reproduced every score in the table
+**The random forest does not match.** Two points of accuracy is a real gap, and it is
+the honest read on a 15-tree forest: the hand-written version bootstraps and subsets
+features the same way, but sklearn's tree splitter searches candidate thresholds
+differently, and on 30 correlated features that shows up in the vote. The single
+decision tree matches exactly, which localises the difference to the ensembling rather
+than to the splitter. Every random draw takes a seed, as the sklearn model it is
+measured against does, and a re-run on 2026-10-02 reproduced every score in the table
 exactly.
 
 Outside the forest the classifiers' answers match. They are slower (pure NumPy against
