@@ -38,9 +38,11 @@ Until this pass the forest also scored a *different* number every run — 0.937 
 `np.random` while the sklearn model it is measured against takes a `random_state`.
 A seeded library against an unseeded reimplementation is not a comparison, and the
 figure that reached the README was whichever draw got written down. Everything that
-draws now takes a seed.
-They're slower — pure NumPy vs. compiled C — but the *answers* match, which is the
-whole point.
+draws now takes a seed, and a re-run on 2026-10-02 reproduced every score in the table
+exactly.
+
+Outside the forest the classifiers' answers match. They are slower (pure NumPy against
+compiled C), which is the expected price of writing them by hand.
 
 ## What's implemented
 
