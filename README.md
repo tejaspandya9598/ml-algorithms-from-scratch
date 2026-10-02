@@ -102,6 +102,7 @@ ml-algorithms-from-scratch/
 │   └── neural/           # mlp.py  lstm.py  autoencoder.py
 ├── benchmarks/run.py     # from-scratch vs scikit-learn comparison + chart
 ├── notebooks/            # the original four assignments (the working record)
+├── data/                 # FRED GDP + UCI datasets (CC BY 4.0) the notebooks read, so they run offline
 ├── reports/              # benchmark.csv + figures
 └── tests/                # parity tests vs scikit-learn
 ```
@@ -122,6 +123,13 @@ uv sync --extra neural              # adds torch for the LSTM / autoencoder modu
   scored by the same code.
 - The neural modules (`neural/lstm.py`, `neural/autoencoder.py`) keep a PyTorch
   reference next to the from-scratch version; install the `neural` extra to use them.
+- The notebooks read their data from `data/`: FRED's GDP series and four UCI datasets
+  (wine quality, breast cancer, car evaluation, bank marketing) through
+  `mlscratch.datasets.load_uci`, which only calls the UCI API if a copy is missing.
+  Notebook 04 still downloads S&P 500 and EUR/USD prices from Yahoo, whose terms do not
+  allow redistributing them. GDP is the 2026-10-02 FRED vintage; the saved outputs in
+  notebook 01 came from an earlier vintage, so its ADF statistic re-runs slightly
+  differently.
 - These prioritise being *readable and correct* over fast. For production, use the
   library — the value here is understanding what it's doing.
 
